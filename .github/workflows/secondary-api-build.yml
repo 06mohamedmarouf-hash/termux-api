@@ -36,6 +36,18 @@ jobs:
         working-directory: termux-app
         run: ./gradlew --no-daemon publishReleasePublicationToMavenLocal
 
+      - name: Build secondary Termux APK
+        working-directory: termux-app
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Upload secondary Termux APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: termux-secondary-app-apks
+          path: termux-app/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Build Termux:API APK
         working-directory: termux-api
         run: ./gradlew --no-daemon assembleDebug
