@@ -24,6 +24,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Check out customized Termux app sources
+        uses: actions/checkout@v4
+        with:
+          repository: 06mohamedmarouf-hash/termux-app
+          ref: master
+          path: termux-app
+
+      - name: Publish customized termux-shared to Maven local
+        working-directory: termux-app
+        run: ./gradlew --no-daemon publishReleasePublicationToMavenLocal
+
       - name: Build
         shell: bash {0}
         run: |
