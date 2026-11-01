@@ -1,0 +1,56 @@
+name: Build secondary Termux API APK
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Termux:API
+        uses: actions/checkout@v4
+        with:
+          path: termux-api
+
+      - name: Check out customized Termux app sources
+        uses: actions/checkout@v4
+        with:
+          repository: 06mohamedmarouf-hash/termux-app
+          ref: master
+          path: termux-app
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Publish customized termux-shared to Maven local
+        working-directory: termux-app
+        run: ./gradlew --no-daemon publishReleasePublicationToMavenLocal
+
+      - name: Build Termux:API APK
+        working-directory: termux-api
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Verify APK
+        working-directory: termux-api
+        run: |
+          APK="app/build/outputs/apk/debug/termux-api-app_v0.53.0+debug.apk"
+          test -s "$APK"
+          sha256sum "$APK"
+
+      - name: Upload Termux:API APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: termux-secondary-api-apk
+          path: termux-api/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
